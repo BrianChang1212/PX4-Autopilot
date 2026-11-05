@@ -2943,7 +2943,7 @@ Mavlink::start(int argc, char *argv[])
 	px4_task_spawn_cmd("mavlink_main",
 			   SCHED_DEFAULT,
 			   SCHED_PRIORITY_DEFAULT,
-			   PX4_STACK_ADJUSTED(2896) + MAVLINK_NET_ADDED_STACK,
+			   PX4_STACK_ADJUSTED(CONFIG_MAVLINK_MAIN_STACK_SIZE) + MAVLINK_NET_ADDED_STACK,
 			   (px4_main_t)&Mavlink::start_helper,
 			   (char *const *)argv);
 

@@ -18,6 +18,22 @@ depends on MODULES_MAVLINK && DRIVERS_UAVCAN
 	---help---
 		Expose UAVCAN parameters over Mavlink.
 
+menuconfig MAVLINK_MAIN_STACK_SIZE
+	int "stack size of each mavlink instance task"
+	default 2896
+	depends on MODULES_MAVLINK
+	---help---
+		Stack size of the mavlink_main task (one per instance), excluding the
+		extra stack added for network links.
+
+menuconfig MAVLINK_RECEIVER_EXTRA_STACK_SIZE
+	int "extra stack size of the mavlink receive thread"
+	default 2840
+	depends on MODULES_MAVLINK
+	---help---
+		Stack added on top of sizeof(MavlinkReceiver) for the mavlink receive
+		thread, excluding the extra stack added for network links.
+
 menuconfig USER_MAVLINK
 	bool "mavlink running as userspace module"
 	default y

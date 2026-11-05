@@ -3507,7 +3507,8 @@ void MavlinkReceiver::start()
 	(void)pthread_attr_setschedparam(&receiveloop_attr, &param);
 
 	pthread_attr_setstacksize(&receiveloop_attr,
-				  PX4_STACK_ADJUSTED(sizeof(MavlinkReceiver) + 2840 + MAVLINK_RECEIVER_NET_ADDED_STACK));
+				  PX4_STACK_ADJUSTED(sizeof(MavlinkReceiver) + CONFIG_MAVLINK_RECEIVER_EXTRA_STACK_SIZE
+						     + MAVLINK_RECEIVER_NET_ADDED_STACK));
 
 	pthread_create(&_thread, &receiveloop_attr, MavlinkReceiver::start_trampoline, (void *)this);
 
