@@ -1,0 +1,9 @@
+config PERF_COUNT_ONLY
+	bool "Allocate only event (count) perf counters"
+	default n
+	depends on !SYSTEMCMDS_PERF
+	help
+	  perf_alloc() returns nullptr for elapsed and interval counters, which
+	  are only read by the perf command. Saves heap on boards with little RAM
+	  that do not build the perf command. Event counters are kept because
+	  drivers read them for error reporting.

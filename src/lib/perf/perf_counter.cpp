@@ -44,6 +44,7 @@
 #include <drivers/drv_hrt.h>
 #include <math.h>
 #include <pthread.h>
+#include <px4_platform_common/px4_config.h>
 #include <systemlib/err.h>
 
 #include "perf_counter.h"
@@ -112,6 +113,17 @@ perf_counter_t
 perf_alloc(enum perf_counter_type type, const char *name)
 {
 	perf_counter_t ctr = nullptr;
+
+#if defined(CONFIG_PERF_COUNT_ONLY)
+
+	// Elapsed/interval counters are only read by the perf command, so on boards that do not build it
+	// each one is wasted heap (64/80 B blocks).  Event counters stay because drivers read them
+	// (perf_event_count) for error reporting.  All perf_* functions accept nullptr.
+	if (type != PC_COUNT) {
+		return nullptr;
+	}
+
+#endif
 
 	switch (type) {
 	case PC_COUNT:
