@@ -95,7 +95,8 @@ private:
 	void UpdateMagCalibration();
 	void UpdatePowerCompensation();
 
-	static constexpr int MAX_SENSOR_COUNT = 4;
+	static constexpr int MAX_SENSOR_COUNT = CONFIG_SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT;
+	static_assert(MAX_SENSOR_COUNT >= 1 && MAX_SENSOR_COUNT <= 4, "vehicle_magnetometer supports 1 to 4 sensors");
 
 	uORB::Publication<sensors_status_s> _sensors_status_mag_pub{ORB_ID(sensors_status_mag)};
 
@@ -103,9 +104,15 @@ private:
 
 	uORB::PublicationMulti<vehicle_magnetometer_s> _vehicle_magnetometer_pub[MAX_SENSOR_COUNT] {
 		{ORB_ID(vehicle_magnetometer)},
+#if CONFIG_SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT > 1
 		{ORB_ID(vehicle_magnetometer)},
+#endif
+#if CONFIG_SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT > 2
 		{ORB_ID(vehicle_magnetometer)},
+#endif
+#if CONFIG_SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT > 3
 		{ORB_ID(vehicle_magnetometer)},
+#endif
 	};
 
 	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
@@ -128,9 +135,15 @@ private:
 
 	uORB::SubscriptionCallbackWorkItem _sensor_sub[MAX_SENSOR_COUNT] {
 		{this, ORB_ID(sensor_mag), 0},
+#if CONFIG_SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT > 1
 		{this, ORB_ID(sensor_mag), 1},
+#endif
+#if CONFIG_SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT > 2
 		{this, ORB_ID(sensor_mag), 2},
-		{this, ORB_ID(sensor_mag), 3}
+#endif
+#if CONFIG_SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT > 3
+		{this, ORB_ID(sensor_mag), 3},
+#endif
 	};
 
 	hrt_abstime _last_calibration_update{0};

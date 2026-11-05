@@ -36,6 +36,14 @@ if MODULES_SENSORS
         bool "Include vehicle magnetometer"
         default y
 
+    config SENSORS_VEHICLE_MAGNETOMETER_MAX_COUNT
+        int "Maximum number of magnetometers used by vehicle magnetometer"
+        default 4
+        range 1 4
+        depends on SENSORS_VEHICLE_MAGNETOMETER
+        help
+          Boards with fewer magnetometers can lower it to save RAM.
+
     config SENSORS_VEHICLE_OPTICAL_FLOW
         bool "Include vehicle optical flow"
         default y
