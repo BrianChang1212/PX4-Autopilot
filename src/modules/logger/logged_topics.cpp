@@ -45,6 +45,13 @@ using namespace px4::logger;
 
 void LoggedTopics::add_default_topics()
 {
+#if defined(CONFIG_LOGGER_BOARD_TOPICS)
+	// The board replaces the default topic list. The header is included inside this
+	// function and holds only add_topic*() calls (see LOGGER_BOARD_TOPICS in Kconfig).
+#include <board_logger_topics.h>
+	return;
+#endif
+
 	add_topic("action_request");
 	add_topic("actuator_armed");
 	add_optional_topic("actuator_controls_status_0", 300);

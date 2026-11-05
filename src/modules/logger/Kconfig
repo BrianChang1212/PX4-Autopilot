@@ -38,3 +38,13 @@ menuconfig LOGGER_FSYNC_AT_FS_BLOCK_END
 		next append copy the whole block. Other file systems keep the default
 		behaviour (fsync every 1 s or 100 polls). Only used on NuttX and
 		ignored when PX4_CRYPTO (encrypted logs) is enabled.
+
+menuconfig LOGGER_BOARD_TOPICS
+	bool "use the board's default topic list"
+	default n
+	depends on MODULES_LOGGER
+	---help---
+		Replace the built-in default topic list with the board's own list in
+		board_logger_topics.h (board src directory). The header is included
+		inside LoggedTopics::add_default_topics() and holds only add_topic*()
+		calls. logger_topics.txt on the SD card still takes precedence.
