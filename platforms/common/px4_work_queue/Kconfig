@@ -4,6 +4,14 @@
 
 menu "Work Queue Configuration"
 
+config WQ_MANAGER_STACKSIZE
+	int "Stack size for wq:manager"
+	default 1280
+	range 800 10000
+	help
+	  Sets the stack size in bytes for the wq:manager task, which creates the
+	  work queues. Boards that are short on RAM can lower it.
+
 config WQ_RATE_CTRL_STACKSIZE
 	int "Stack size for wq:rate_ctrl"
 	default 3150
