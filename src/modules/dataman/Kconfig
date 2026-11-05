@@ -20,6 +20,14 @@ menuconfig DATAMAN_PERSISTENT_STORAGE
 	---help---
 		Dataman supports reading/writing to persistent storage
 
+menuconfig DATAMAN_STACK_SIZE
+	int "stack size of the dataman task"
+	default 1420
+	depends on MODULES_DATAMAN
+	---help---
+		Stack size of the dataman task. File systems with deep call chains
+		(e.g. littlefs on NAND) need more than the default.
+
 menuconfig NUM_MISSION_ITMES_SUPPORTED
 	int "Maximum number of mission items"
 	default 500
