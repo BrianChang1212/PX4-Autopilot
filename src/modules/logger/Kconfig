@@ -18,3 +18,11 @@ menuconfig LOGGER_STACK_SIZE
 	---help---
 		Stack size of the logger task. Some configurations require more stack
 		than the default.
+
+menuconfig LOGGER_WRITER_STACK_SIZE
+	int "stack size of the log file writer thread"
+	default 1170
+	depends on MODULES_LOGGER
+	---help---
+		Stack size of the log_writer_file thread. File systems with deep call
+		chains (e.g. littlefs on NAND) need more than the default.
