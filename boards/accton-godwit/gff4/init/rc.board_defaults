@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Accton Godwit GFF4 board specific defaults (clean baseline)
+#------------------------------------------------------------------------------
+
+# system_power unavailable
+param set-default CBRK_SUPPLY_CHK 894281
+
+param set-default SYS_HAS_MAG 0
+
+# Only one mavlink instance fits: sizeof(Mavlink) is ~10 KiB and the F405 has
+# 160 KiB of heap, so a TEL1 instance both consumes a block and fragments the
+# heap enough that the USB instance started by cdcacm_autostart fails to
+# allocate. USB is the config port on this board, so TEL1 stays off by default;
+# set MAV_0_CONFIG back to 101 once the memory budget allows it.
+param set-default MAV_0_CONFIG 0
+
+# R0C has no VBUS-sense pin, so board_read_VBUS_state() always reports VBUS
+# (see src/usb.c). With the upstream SYS_USB_AUTO=2 the USB MAVLink instance is
+# started at boot even in flight with no cable, costing ~18 KiB of heap.
+# 1 = start MAVLink/NSH on USB only after the host sends data (QGC, fcsh and
+# MAVFTP tools send heartbeats first).
+param set-default SYS_USB_AUTO 1
+
+# Logger buffer size. rcS sets LOGGER_BUF 8 before this file runs. On this board
+# the 8 KiB buffer takes the heap to 95.8% while logging (over COM_RAM_MAX 95);
+# 5 KiB gives 93.9% (measured 2026-10-16, SDLOG_PROFILE 19). -b 4 writes 0 B on
+# this board, so 5 is the smallest size that has been used successfully.
+set LOGGER_BUF 5

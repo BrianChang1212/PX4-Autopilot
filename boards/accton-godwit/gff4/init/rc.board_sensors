@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Accton Godwit GFF4 specific board sensors init
+#------------------------------------------------------------------------------
+
+board_adc start
+
+icm42688p -s -b 1 -R 0 start
+
+dps310 -I -b 1 -a 119 start
+
+# The IST8310 magnetometer is populated on this board and answers at 0x0C (not
+# the driver default 0x0E -- IST8310::probe() only reads WAI at the address it
+# was given), but the driver is left out of the build for now: the F405 cannot
+# spare the RAM, and without it mavlink fails to allocate its USB instance. To
+# bring it back, re-enable CONFIG_DRIVERS_MAGNETOMETER_ISENTEK_IST8310, restore
+#   ist8310 -I -b 1 -a 12 -R 0 start
+# here, and set SYS_HAS_MAG to 1.
+
+# 2026-10-19: IST8310 enabled on the gps variant only (driver built in gps.px4board).
+# Started only when SYS_HAS_MAG is 1, so variants without the driver are unaffected.
+if param compare SYS_HAS_MAG 1
+then
+	ist8310 -I -b 1 -a 12 -R 0 start
+fi

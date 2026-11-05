@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Accton Godwit GFF4 early board init
+#------------------------------------------------------------------------------
+
+# board_app_initialize() has already mounted the NAND littlefs at
+# CONFIG_BOARD_ROOT_PATH by the time rcS runs. The rcS storage probe only knows
+# how to find an SD card (/dev/mmcsd0) or a manifest entry (`mft`, not built for
+# this board), so it would leave STORAGE_AVAILABLE=no -- which in turn leaves
+# PARAM_BACKUP_FILE empty and makes `param load-or-init ""` fail on open("")
+# with ENXIO, so parameters are never persisted. Declare the storage here
+# instead and skip the probe.
+
+set STORAGE_CHECK no
+set STORAGE_AVAILABLE yes

@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# Accton Godwit GFF4 specific board extras init
+#------------------------------------------------------------------------------
+
+# Logger topic profile. The airframe 4050_generic_250 does "param set-default
+# SDLOG_PROFILE 19" and rc.autostart runs AFTER rc.board_defaults, so a default set
+# there would be overridden; this file runs after the airframe and before rc.logging.
+# 1 = default topic list only: ~13-15% log dropout and ~76-78% CPU while logging,
+# versus ~43% dropout and ~87% CPU with 19 (measured 2026-10-16).
+param set-default SDLOG_PROFILE 1
+
+if ! param compare OSD_ATXXXX_CFG 0
+then
+	atxxxx start -s
+fi
