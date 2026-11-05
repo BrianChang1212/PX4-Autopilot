@@ -105,6 +105,15 @@ menu "Toolchain"
         help
             flag to exclude metadata to reduce flash
 
+    config BOARD_EMBED_ACTUATORS_METADATA
+        bool "Embed actuators metadata"
+        help
+            Embed only the actuators metadata (actuators.json.xz) in ROMFS when the
+            full metadata set is not embedded (BOARD_CONSTRAINED_FLASH or
+            BOARD_EXTERNAL_METADATA). Ground stations can then show the actuator
+            setup and test page for boards without published external metadata.
+            Costs about 3 KB of flash.
+
     config BOARD_LINKER_PREFIX
         string "linker prefix"
         help

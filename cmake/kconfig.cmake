@@ -275,6 +275,9 @@ if(EXISTS ${BOARD_DEFCONFIG})
 			events_json
 			actuators_json
 			)
+	elseif(EMBED_ACTUATORS_METADATA)
+		list(APPEND romfs_extra_files ${PX4_BINARY_DIR}/actuators.json.xz)
+		list(APPEND romfs_extra_dependencies actuators_json)
 	endif()
 	list(APPEND romfs_extra_files ${PX4_BINARY_DIR}/component_general.json.xz)
 	list(APPEND romfs_extra_dependencies component_general_json)
