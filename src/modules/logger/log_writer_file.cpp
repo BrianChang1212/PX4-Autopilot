@@ -38,6 +38,16 @@
 #include <string.h>
 #include <errno.h>
 
+#include <px4_platform_common/px4_config.h>
+
+#if defined(__PX4_NUTTX) && !defined(PX4_CRYPTO) && defined(CONFIG_LOGGER_FSYNC_AT_FS_BLOCK_END)
+# include <sys/statfs.h>
+# include "lfs_block_align.h"
+// CONFIG_LOGGER_FSYNC_AT_FS_BLOCK_END is ignored with PX4_CRYPTO and outside NuttX.
+// At runtime it only takes effect when the log file is on littlefs (checked in start_log()).
+# define LOGGER_LFS_BLOCK_ALIGNED_FSYNC 1
+#endif
+
 #include <mathlib/mathlib.h>
 #include <px4_platform_common/posix.h>
 #include <px4_platform_common/log.h>
@@ -355,8 +365,21 @@ void LogWriterFile::run()
 
 			const hrt_abstime now = hrt_absolute_time();
 
-			/* call fsync periodically to minimize potential loss of data */
-			const bool call_fsync = ++poll_count >= 100 || now - last_fsync > 1_s || _want_fsync.load();
+#if defined(LOGGER_LFS_BLOCK_ALIGNED_FSYNC)
+			/* littlefs on NAND: after an fsync the next append copies the whole incomplete
+			 * last block (measured 0.8-2.3 s on an STM32F4 with SPI NAND).  Sync only where a block ends (see
+			 * lfs_block_align.h); the timed fsync is just a fallback for very low data rates. */
+			const size_t fs_block = _buffers[(int)LogType::Full].fs_block_size();
+			// not littlefs: keep the upstream behaviour (1 s or every 100 polls)
+			const hrt_abstime fsync_interval = (fs_block != 0) ? 120_s : 1_s;
+			const int poll_limit = (fs_block != 0) ? 1000000 : 100;
+#else
+			const hrt_abstime fsync_interval = 1_s;
+			const int poll_limit = 100;
+#endif
+
+			/* call fsync periodically to minimize potential loss of data. */
+			const bool call_fsync = ++poll_count >= poll_limit || now - last_fsync > fsync_interval || _want_fsync.load();
 			_want_fsync.store(false);
 
 			if (call_fsync) {
@@ -413,13 +436,35 @@ void LogWriterFile::run()
 
 #endif // PX4_CRYPTO
 
-					int written = buffer.write_to_file(read_ptr, available, call_fsync);
+					size_t to_write = available;
+					bool do_fsync = call_fsync;
+
+#if defined(LOGGER_LFS_BLOCK_ALIGNED_FSYNC)
+
+					if (i == (int)LogType::Full && fs_block != 0) {
+						// never let a write cross the end of a littlefs block; fsync exactly at the end
+						const size_t to_block_end = lfs_bytes_to_block_end(buffer.total_written(), fs_block);
+
+						if (to_write >= to_block_end) {
+							to_write = to_block_end;
+							do_fsync = true;
+						}
+					}
+
+#endif
+
+					int written = buffer.write_to_file(read_ptr, to_write, do_fsync);
 
 					if (written < 0) {
 						// retry once
 						PX4_ERR("write failed errno:%i (%s), retrying", errno, strerror(errno));
 						px4_usleep(10000); // 10 milliseconds
-						written = buffer.write_to_file(read_ptr, available, call_fsync);
+						written = buffer.write_to_file(read_ptr, to_write, do_fsync);
+					}
+
+					if (do_fsync && written >= 0) {
+						last_fsync = now;
+						poll_count = 0;
 					}
 
 					/* buffer.mark_read() requires _mtx to be locked */
@@ -680,6 +725,18 @@ bool LogWriterFile::LogFileBuffer::start_log(const char *filename)
 	_head = 0;
 	_count = 0;
 	_total_written = 0;
+
+#if defined(LOGGER_LFS_BLOCK_ALIGNED_FSYNC)
+	_fs_block_size = 0;
+
+	// Runs in the logger task, so the statfs struct does not use the writer thread's stack.
+	struct statfs sfs;
+
+	if (fstatfs(_fd, &sfs) == 0 && sfs.f_type == LITTLEFS_SUPER_MAGIC && sfs.f_bsize >= 512) {
+		_fs_block_size = sfs.f_bsize;
+	}
+
+#endif
 
 	_should_run = true;
 

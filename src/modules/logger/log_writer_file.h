@@ -201,6 +201,10 @@ private:
 		void mark_read(size_t n) { _count -= n; _total_written += n; }
 
 		size_t total_written() const { return _total_written; }
+#if defined(CONFIG_LOGGER_FSYNC_AT_FS_BLOCK_END)
+		/** littlefs block size of the open file, 0 if not littlefs (see start_log()) */
+		size_t fs_block_size() const { return _fs_block_size; }
+#endif
 		size_t buffer_size() const { return _buffer_size; }
 		size_t count() const { return _count; }
 
@@ -214,6 +218,9 @@ private:
 		size_t _head = 0; ///< next position to write to
 		size_t _count = 0; ///< number of bytes in _buffer to be written
 		size_t _total_written = 0;
+#if defined(CONFIG_LOGGER_FSYNC_AT_FS_BLOCK_END)
+		size_t _fs_block_size = 0;
+#endif
 		perf_counter_t _perf_write;
 		perf_counter_t _perf_fsync;
 	};
