@@ -11,6 +11,13 @@ menuconfig USER_NAVIGATOR
 	---help---
 		Put navigator in userspace memory
 
+menuconfig NAVIGATOR_STACK_SIZE
+	int "stack size of the navigator task"
+	default 2200
+	depends on MODULES_NAVIGATOR
+	---help---
+		Stack size of the navigator task.
+
 menuconfig MODE_NAVIGATOR_VTOL_TAKEOFF
 	bool "Include VTOL takeoff mode support"
 	default n
